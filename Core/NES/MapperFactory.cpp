@@ -17,6 +17,7 @@
 #include "NES/Mappers/FDS/Fds.h"
 #include "NES/Mappers/FDS/FdsAudio.h"
 #include "NES/Mappers/Homebrew/Action53.h"
+#include "NES/Mappers/Homebrew/BnuyRom.h"
 #include "NES/Mappers/Homebrew/MagicFloor218.h"
 #include "NES/Mappers/Homebrew/NsfCart31.h"
 #include "NES/Mappers/Homebrew/Cheapocabra.h"
@@ -624,6 +625,8 @@ BaseMapper* MapperFactory::GetMapperFromID(RomData &romData)
 		case 552: return new TaitoX1017();
 
 		case 682: return new Rainbow();
+		
+		case 700: return new BnuyRom();
 
 		case UnifBoards::Ac08: return new Ac08(); //mapper 42?
 		case UnifBoards::Cc21: return new Cc21();
