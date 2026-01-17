@@ -36,7 +36,7 @@ protected:
 	}
 	
 	void UpdateIrqSource() {
-		if (_irqCounter == 0 && (_romInfo.SubMapperID & 4) == 0) {
+		if (_irqCounter == 0 && _romInfo.SubMapperID & 4) {
 			_console->GetCpu()->SetIrqSource(IRQSource::External);
 		} else {
 			_console->GetCpu()->ClearIrqSource(IRQSource::External);
@@ -60,8 +60,11 @@ protected:
 		
 		// Linear Mode
 		if ( (_romInfo.SubMapperID & 3) == 0) {
-			
-			SetPpuMemoryMapping(0x0000, 0x3FFF, ChrMemoryType::ChrRam, 0x0000, MemoryAccessType::ReadWrite);
+			if (GetMirroringType() == MirroringType::FourScreens) {
+				SetPpuMemoryMapping(0x0000, 0x3FFF, ChrMemoryType::ChrRam, 0x0000, MemoryAccessType::ReadWrite);
+			} else {
+				SetPpuMemoryMapping(0x0000, 0x1FFF, ChrMemoryType::ChrRam, 0x0000, MemoryAccessType::ReadWrite);
+			}
 		}
 		// Shared Mode
 		else if ( (_romInfo.SubMapperID & 3) == 1)
@@ -70,12 +73,14 @@ protected:
 				SelectChrPage(i, _chrBanks[i] );
 			}
 			
-			// Nametables
-			SetPpuMemoryMapping(0x2000, 0x27FF, ChrMemoryType::ChrRam, 0x0000, MemoryAccessType::ReadWrite);
-			SetPpuMemoryMapping(0x2800, 0x2FFF, ChrMemoryType::ChrRam, 0x7800, MemoryAccessType::ReadWrite);
-			// Bonus Ram
-			SetPpuMemoryMapping(0x3000, 0x37FF, ChrMemoryType::ChrRam, 0x0000, MemoryAccessType::ReadWrite);
-			SetPpuMemoryMapping(0x3800, 0x3FFF, ChrMemoryType::ChrRam, 0x7800, MemoryAccessType::ReadWrite);
+			if (GetMirroringType() == MirroringType::FourScreens) {
+				// Nametables
+				SetPpuMemoryMapping(0x2000, 0x27FF, ChrMemoryType::ChrRam, 0x0000, MemoryAccessType::ReadWrite);
+				SetPpuMemoryMapping(0x2800, 0x2FFF, ChrMemoryType::ChrRam, 0x7800, MemoryAccessType::ReadWrite);
+				// Bonus Ram
+				SetPpuMemoryMapping(0x3000, 0x37FF, ChrMemoryType::ChrRam, 0x0000, MemoryAccessType::ReadWrite);
+				SetPpuMemoryMapping(0x3800, 0x3FFF, ChrMemoryType::ChrRam, 0x7800, MemoryAccessType::ReadWrite);
+			}
 		}
 		// Independent Mode
 		else if ( (_romInfo.SubMapperID & 3) == 2) 
@@ -86,12 +91,14 @@ protected:
 				SelectChrPage(i, (_chrBanks[i]%_banksPerWindow) + (_banksPerWindow*i) );
 			}
 			
-			// Nametables
-			SetPpuMemoryMapping(0x2000, 0x27FF, ChrMemoryType::ChrRam, 0x7800, MemoryAccessType::ReadWrite);
-			SetPpuMemoryMapping(0x2800, 0x2FFF, ChrMemoryType::ChrRam, 0xF800, MemoryAccessType::ReadWrite);
-			// Bonus RAM
-			SetPpuMemoryMapping(0x3000, 0x37FF, ChrMemoryType::ChrRam, 0x17800, MemoryAccessType::ReadWrite);
-			SetPpuMemoryMapping(0x3800, 0x3FFF, ChrMemoryType::ChrRam, 0x1F800, MemoryAccessType::ReadWrite);
+			if (GetMirroringType() == MirroringType::FourScreens) {
+				// Nametables
+				SetPpuMemoryMapping(0x2000, 0x27FF, ChrMemoryType::ChrRam, 0x7800, MemoryAccessType::ReadWrite);
+				SetPpuMemoryMapping(0x2800, 0x2FFF, ChrMemoryType::ChrRam, 0xF800, MemoryAccessType::ReadWrite);
+				// Bonus RAM
+				SetPpuMemoryMapping(0x3000, 0x37FF, ChrMemoryType::ChrRam, 0x17800, MemoryAccessType::ReadWrite);
+				SetPpuMemoryMapping(0x3800, 0x3FFF, ChrMemoryType::ChrRam, 0x1F800, MemoryAccessType::ReadWrite);
+			}
 		}
 	}
 
@@ -141,7 +148,7 @@ protected:
 				UpdatePrgRegister(value);
 				break;
 			case 0xC000:
-				if ( (_romInfo.SubMapperID & 4) == 0) {
+				if (_romInfo.SubMapperID & 4) {
 					_irqCounter = value;
 					UpdateIrqSource();
 				}
@@ -166,7 +173,7 @@ protected:
 		vector<MapperStateEntry> entries;
 		entries.push_back(MapperStateEntry("$8000.0-5", "PRG Bank", _prgBank & 0x3F, MapperStateValueType::Number8));
 		entries.push_back(MapperStateEntry("$8000.6-7", "WRAM Bank", _prgBank >> 6, MapperStateValueType::Number8));
-		if ((_romInfo.SubMapperID & 4) == 0) {
+		if ( _romInfo.SubMapperID & 4 ) {
 			entries.push_back(MapperStateEntry("$C000", "IRQ Timer", _irqCounter, MapperStateValueType::Number8));
 			entries.push_back(MapperStateEntry("$C000", "IRQ Prescaler", _irqPrescaler, MapperStateValueType::Number8));
 		}
